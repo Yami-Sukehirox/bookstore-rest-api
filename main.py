@@ -52,7 +52,7 @@ def get_book(book_id: int):
 
 @app.put("/books/{book_id}")
 def update_book(book_id: int, updated_book: BookCreate):
-    for ind, book in the(books):
+    for ind, book in enumerate(books):
         if book.id == book_id:
             new_books = Book(
                 id=book_id,
@@ -64,22 +64,35 @@ def update_book(book_id: int, updated_book: BookCreate):
             books[ind] = new_books
             return new_books 
 
+            
 @app.delete("/books/{book_id}")
 def delete_book(book_id: int):
-    for ind, book in the(books):
-        if book.id == book_id:
-            dels_book = books.pop(ind)
-            return {
-                "message": "DELETED!",
-                "book": delete_book
-            }
+    connection = get_connection()
+    cursor = connection.cursor()
 
+    try:
+        cursor.execute(
+            "DELETE FROM books WHERE id = %s",
+            (book_id,)
+        )
 
-    raise HTTPException(
-        status_code=404,
-        detail="Book not found"
-    )
- 
+        if cursor.rowcount == 0:
+            connection.rollback()
+            raise HTTPException(
+                status_code=404,
+                detail="Book not found in database"
+            )
+
+        connection.commit()
+
+        return {
+            "message": "Book deleted successfully",
+            "book_id": book_id
+        }
+
+    finally:
+        cursor.close()
+        connection.close()
 
 
 @app.post("/books")
