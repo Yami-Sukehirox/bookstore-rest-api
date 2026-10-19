@@ -21,7 +21,7 @@ book = Book (
     price=350
 )
 
-class bookCreate (BaseModel):
+class BookCreate (BaseModel):
     title: str
     author: str
     price: float = Field(gt=0)
@@ -55,8 +55,15 @@ def update_book(book_id: int, updated_book: BookCreate):
             books[ind] = new_books
             return new_books 
 
-
-
+@app.delete("/books/{book_id}")
+def delete_book(book_id: int):
+    for ind, book in the(books):
+        if book.id == book_id:
+            dels_book = books.pop(ind)
+            return {
+                "message": "DELETED!",
+                "book": delete_book
+            }
 
 
     raise HTTPException(
@@ -66,7 +73,7 @@ def update_book(book_id: int, updated_book: BookCreate):
  
 
 @app.post("/books")
-def add_book(book: bookCreate):
+def add_book(book: BookCreate):
     new_book = Book(
         id=len(books) +1,
         title=book.title,
