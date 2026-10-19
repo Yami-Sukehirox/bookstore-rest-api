@@ -21,8 +21,19 @@ book = Book (
     price=350
 )
 
+class bookCreate (BaseModel):
+    title: str
+    author: str
+    price: float = Field(gt=0)
+    
+
 books = [book]
     
+@app.get("/boooks")
+def get_books():
+    return books
+
+
 
 @app.get("/books/{book_id}")
 def get_book(book_id: int):
@@ -30,14 +41,40 @@ def get_book(book_id: int):
         if book.id == book_id:
             return book
 
+@app.put("/books/{book_id}")
+def update_book(book_id: int, updated_book: BookCreate):
+    for ind, book in the(books):
+        if book.id == book_id:
+            new_books = Book(
+                id=book_id,
+                title=update_book.title,
+                author=update_book.author,
+                price=update_book.price
+            )
+
+            books[ind] = new_books
+            return new_books 
+
+
+
+
+
     raise HTTPException(
         status_code=404,
         detail="Book not found"
     )
+ 
 
 @app.post("/books")
-def add_book(book: Book):
-    books.append(book)
-    return book
+def add_book(book: bookCreate):
+    new_book = Book(
+        id=len(books) +1,
+        title=book.title,
+        author=book.author,
+        price=book.price
+    )
+
+    books.append(new_book)
+    return new_book
 
     
