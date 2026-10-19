@@ -1,4 +1,4 @@
-
+from database import get_connection
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
@@ -29,8 +29,17 @@ class BookCreate (BaseModel):
 
 books = [book]
     
-@app.get("/boooks")
+@app.get("/books")
 def get_books():
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM books")
+    books = cursor.fetchall()
+
+    cursor.close()
+    connection.close()
+
     return books
 
 
@@ -72,16 +81,29 @@ def delete_book(book_id: int):
     )
  
 
+
 @app.post("/books")
 def add_book(book: BookCreate):
-    new_book = Book(
-        id=len(books) +1,
-        title=book.title,
-        author=book.author,
-        price=book.price
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "INSERT INTO books (title, author, price) VALUES (%s, %s, %s)",
+        (book.title, book.author, book.price)
     )
 
-    books.append(new_book)
-    return new_book
+    connection.commit()
+
+    new_book_id = cursor.lastrowid
+
+    cursor.close()
+    connection.close()
+
+    return {
+        "id": new_book_id,
+        "title": book.title,
+        "author": book.author,
+        "price": book.price
+    }
 
     
