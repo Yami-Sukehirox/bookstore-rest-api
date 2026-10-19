@@ -21,23 +21,23 @@ book = Book (
     price=350
 )
 
-book = [book]
+books = [book]
     
 
-@app.get("/book/{book_id}")
-def get_books(book_id: int):
-    for books in book:
-        if book_id == book_id:
+@app.get("/books/{book_id}")
+def get_book(book_id: int):
+    for book in books:
+        if book.id == book_id:
             return book
 
-    return {"message": "Book not found!"}
+    raise HTTPException(
+        status_code=404,
+        detail="Book not found"
+    )
 
 @app.post("/books")
 def add_book(book: Book):
     books.append(book)
     return book
 
-    raise HTTPexception(
-        status_code=404,
-        detail="Book not found"
-    )
+    
