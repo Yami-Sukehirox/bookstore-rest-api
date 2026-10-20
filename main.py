@@ -46,9 +46,31 @@ def get_books():
 
 @app.get("/books/{book_id}")
 def get_book(book_id: int):
-    for book in books:
-        if book.id == book_id:
-            return book
+    connection = getconnection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute(
+            "select id, title, author, price from books where id = %s",
+            (book_id,)
+        )
+
+        if book is None:
+            raise HTTPException(
+                status_code=404,
+                detal="Book not found!"
+            )
+
+            return {
+                "id": book[0]
+                "title": book[1],
+                "author": book[2],
+                "price": book[3]
+            }
+
+            finally:
+                cursor.close()
+                connection.close()
 
 @app.put("/books/{book_id}")
 def update_book(book_id: int, updated_book: BookCreate):
