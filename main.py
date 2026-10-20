@@ -46,7 +46,7 @@ def get_books():
 
 @app.get("/books/{book_id}")
 def get_book(book_id: int):
-    connection = getconnection()
+    connection = get_connection()
     cursor = connection.cursor()
 
     try:
@@ -55,37 +55,68 @@ def get_book(book_id: int):
             (book_id,)
         )
 
+        book = cursor.fetchone()
         if book is None:
             raise HTTPException(
                 status_code=404,
-                detal="Book not found!"
+                detail="Book not found!"
             )
+        return book
 
-            return {
-                "id": book[0]
-                "title": book[1],
-                "author": book[2],
-                "price": book[3]
-            }
-
-            finally:
-                cursor.close()
-                connection.close()
+            
+    finally:
+        cursor.close()
+        connection.close()
 
 @app.put("/books/{book_id}")
 def update_book(book_id: int, updated_book: BookCreate):
-    for ind, book in enumerate(books):
-        if book.id == book_id:
-            new_books = Book(
-                id=book_id,
-                title=update_book.title,
-                author=update_book.author,
-                price=update_book.price
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    try:
+        cursor.execute(
+            "select id from books where id = %s", 
+            (book_id,)
+        )
+
+        book = cursor.fetchone()
+
+        if book is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Book not found!"
+            )
+        cursor.execute(
+            """
+            update books
+            set title = %s, author = %s, price = %s where id = %s
+            """,
+            (
+                updated_book.title,
+                updated_book.author,
+                updated_book.price,
+                book_id
             )
 
-            books[ind] = new_books
-            return new_books 
+        )
 
+        connection.commit()
+
+        return {
+            "message": "Book updated successfullt!",
+            "id": book_id,
+            "title": updated_book.title,
+            "author": updated_book.author,
+            "price": updated_book.price
+        }
+
+    except Exception:
+        connection.rollback()
+        raise
+
+    finally:
+        cursor.close()
+        connection.close()
             
 @app.delete("/books/{book_id}")
 def delete_book(book_id: int):
